@@ -1,6 +1,4 @@
-#include "array.h"
-
-#include <stdio.h>
+#include "array.hpp"
 
 void arr_print(struct Array arr) {
   printf("[\n");
