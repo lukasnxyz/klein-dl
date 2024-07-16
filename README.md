@@ -1,2 +1,2 @@
-### MLP from scratch
-Goal: write a multi-layer perceptron neural network from scratch, first in Python then in C
+### Tensor implementation in C
+A micrograd like autograd implemented in C. Doing this to fully understand backprop and how arrays/tensors work

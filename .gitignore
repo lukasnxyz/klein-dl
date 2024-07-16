@@ -1,12 +1,9 @@
-# Ignore all,
+# Ignore all, unignore extensions, unignore dirs
 *
-# Unignore all with extensions
 !*.*
-# Unignore all dirs
 !*/
-### Above combination will ignore all files without extension ###
 
-.ipynb_checkpoints/
 .vscode/
-data/
-venv/
+.ipynb_checkpoints/
+
+micrograd.ipynb
