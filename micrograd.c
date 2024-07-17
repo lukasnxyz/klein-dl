@@ -10,14 +10,15 @@ struct Val {
 };
 
 void add_backward(struct Val **val1, struct Val **val2, struct Val **out) {
-	(*val1)->grad += (*val2)->grad * (*out)->grad;
-	(*val2)->grad += (*val1)->grad * (*out)->grad;
+	(*val1)->grad += 1.0 * (*out)->grad;
+	(*val2)->grad += 1.0 * (*out)->grad;
 }
 
 struct Val *val_init(float n_data) {
 	struct Val *val = (struct Val *)malloc(sizeof(struct Val));
 	val->data = n_data;
 	val->grad = 0.0;
+	val->backward = NULL;
 	val->op = '\0';
 
 	return val;
@@ -51,12 +52,12 @@ struct Val *val_add(struct Val **val1, struct Val **val2) {
 int main(void) {
 	struct Val *val1 = val_init(2.5);
 	struct Val *val2 = val_init(3.5);
+	struct Val *val3 = val_add(&val1, &val2);
+	val3->grad = 1.0;
+	val3->backward(val3->children[0], val3->children[1], &val3);
 
 	val_print(*val1);
 	val_print(*val2);
-
-	struct Val *val3 = val_add(&val1, &val2);
-	val3->backward(val3->children[0], val3->children[1], &val3);
 	val_print(*val3);
 
 	free(val1);
