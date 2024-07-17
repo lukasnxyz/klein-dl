@@ -9,6 +9,21 @@ struct Val {
 	char op;
 };
 
+struct Tnode {
+	Val *val;
+	struct Tnode *next;
+};
+
+void topo_append(Tnode **topo, Val *val) {
+}
+
+void topo_build() {
+}
+
+void topo_free() {
+}
+
+// mul backward
 void add_backward(struct Val **val1, struct Val **val2, struct Val **out) {
 	(*val1)->grad += 1.0 * (*out)->grad;
 	(*val2)->grad += 1.0 * (*out)->grad;
@@ -43,11 +58,14 @@ struct Val *val_add(struct Val **val1, struct Val **val2) {
 
 	return out;
 }
+// struct Val *val_mul
 
-/* 
- * struct Val *val_mul
- * void backward
- * */
+void val_backward(struct Val **val) {
+	// topo = {}
+
+	// for node in topo
+	// 		node.backward
+}
 
 int main(void) {
 	struct Val *val1 = val_init(2.5);
