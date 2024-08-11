@@ -55,6 +55,11 @@ def register(name, fxn):
     # add method to Tensor class using partialmethod
     setattr(Tensor, name, partialmethod(fxn.apply, fxn))
 
+# Mul
+# Add
+# ReLU
+# LogSoftmax
+
 class Dot(Function):
     @staticmethod
     def forward(ctx, inp, weight):
