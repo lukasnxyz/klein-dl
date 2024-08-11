@@ -1,12 +1,14 @@
+# inspired by: https://github.com/tinygrad/tinygrad/blob/c900b6e/tinygrad/tensor.py
 import numpy as np
 from functools import partialmethod
 
 class Ctx:
     def __init__(self, arg, *tensors):
-        self.arg = arg
-        self.parents = tensors
-        self.saved_tensors = []
+        self.arg = arg # Function class child
+        self.parents = tensors # len 2, parents of output tensor
+        self.saved_tensors = [] # tmp storage 
 
+    # *x is just a tuple of tensors in this case
     def save_for_backward(self, *x):
         self.saved_tensors.extend(x)
 
@@ -21,29 +23,36 @@ class Tensor():
         return f'Tensor: {self.data}\ngrad: {self.grad}'
 
     def backward(self, allow_fill=True):
-        if self._ctx is None: return
-        if self.grad is None and allow_fill:
-            assert self.data.size == 1
+        # if no context, nothing todo because reached end
+        if self._ctx is None: return 
+        # only start backprop on a scalar (loss)
+        if self.grad is None and allow_fill: 
+            assert self.data.size == 1 
             self.grad = np.ones_like(self.data)
+
         assert(self.grad is not None)
+
+        # compute grads with backward of the function
         grads = self._ctx.arg.backward(self._ctx, self.grad)
         if len(self._ctx.parents) == 1:
-            grads = [grads]
+            grads = [grads] # wrap single gradient in a list
         for t, g in zip(self._ctx.parents, grads):
             if g.shape != t.data.shape:
                 print('grad shape must match tensor shape')
                 assert(False)
-            t.grad = g
-            t.backward(False)
+            t.grad = g # gradient of parent tensor
+            t.backward(False) # recursivly call backward on parent
 
 class Function:
     def apply(self, arg, *x):
         ctx = Ctx(arg, self, *x)
+        # call forward of func and create new tensor with result
         ret = Tensor(arg.forward(ctx, self.data, *[t.data for t in x]))
-        ret._ctx = ctx
+        ret._ctx = ctx 
         return ret
 
 def register(name, fxn):
+    # add method to Tensor class using partialmethod
     setattr(Tensor, name, partialmethod(fxn.apply, fxn))
 
 class Dot(Function):
@@ -54,21 +63,28 @@ class Dot(Function):
     
     @staticmethod
     def backward(ctx, grad_output):
-        inp, weight = ctx.saved_tensors
-        grad_input = grad_output.dot(weight.T) # shape error sometimes
-        grad_weight = grad_output.T.dot(inp).T
+        inp, weight = ctx.saved_tensors # get saved tensors
+        grad_input = grad_output.dot(weight.T) # grad dot weight
+        grad_weight = grad_output.T.dot(inp).T # grad dot inp
         return grad_input, grad_weight
-register('dot', Dot)
+register('dot', Dot) # register Dot function as a method of Tensor
 
 if __name__ == '__main__':
-    t1 = Tensor(np.random.uniform(-1., 1., size=(1,5)))
-    print(t1)
-    t2 = Tensor(np.random.uniform(-1., 1., size=(5, 1)))
-    print(t2)
-    t3 = t1.dot(t2)
-    print(t3)
-    t3.backward()
+    ts = [
+        Tensor(np.random.uniform(-1., 1., size=(1,5))),
+        Tensor(np.random.uniform(-1., 1., size=(5, 1))),
+    ]
+    print(ts[0])
+    print(ts[1])
+    ts.append(ts[0].dot(ts[1]))
+    print(ts[2])
+    ts[2].backward()
     print('--- backward ---')
-    print(t1)
-    print(t2)
-    print(t3)
+    print(ts[0].grad, ts[1].grad, ts[2].grad)
+
+    print()
+    for t in ts:
+        if t._ctx is not None:
+            for p in t._ctx.parents:
+                print(t._ctx.arg)
+                print('p', p)
