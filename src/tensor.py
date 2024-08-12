@@ -13,12 +13,14 @@ class Ctx:
     def save_for_backward(self, *x):
         self.saved_tensors.extend(x)
 
+# TODO: implement lazy eval
 class Tensor():
     def __init__(self, data: Union[np.ndarray, List, float], dtype=np.float32):
         # clean this up
         if type(data) == np.ndarray:
             self.data = data.astype(dtype)
         else: 
+            # TODO: raise a TypeError here instead
             print('[WARNING]: make sure all arrays are of type np.ndarray')
             np.array(data, dtype=dtype)
         self.grad = None
@@ -66,7 +68,7 @@ def register_function(name):
         return cls
     return decorator
 
-# Add, ReLU, LogSoftmax
+# TODO: Add, ReLU, LogSoftmax
 
 @register_function('mul')
 class Mul(Function):
@@ -85,12 +87,13 @@ class Dot(Function):
         return x.dot(y)
     
     def backward(ctx, grad_output):
-        x, y = ctx.saved_tensors # get saved tensors
+        x, y = ctx.saved_tensors 
         grad_input = grad_output.dot(y.T) 
         grad_weight = grad_output.T.dot(x).T 
         return grad_input, grad_weight
 
 # ------------------------------------------------------------------------------
+# TODO: write tests and make this seperate file
 if __name__ == '__main__':
     ts = [
         Tensor(np.random.uniform(-1., 1., size=(1,5))),
