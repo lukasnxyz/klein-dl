@@ -4,19 +4,18 @@ from functools import partialmethod
 from typing import Union, List
 
 class Ctx:
-    def __init__(self, arg, *tensors):
-        self.arg = arg # Function class child
-        self.parents = tensors # len 2, parents of output tensor
-        self.saved_tensors = [] # tmp storage 
+    def __init__(self, arg_func, *tensors):
+        self.arg = arg_func
+        self.parents = tensors 
+        self.saved_tensors = [] 
 
-    # *x is just a tuple of tensors in this case
     def save_for_backward(self, *x):
         self.saved_tensors.extend(x)
 
 # TODO: implement lazy eval
-class Tensor():
+class Tensor:
     def __init__(self, data: Union[np.ndarray, List, float], dtype=np.float32):
-        # clean this up
+        # TODO: clean this up
         if type(data) == np.ndarray:
             self.data = data.astype(dtype)
         else: 
@@ -30,7 +29,6 @@ class Tensor():
         return f'Tensor: {self.data}\ngrad: {self.grad}'
 
     def backward(self, allow_fill=True):
-        # if no context, nothing todo because reached end
         if self._ctx is None: return 
         # only start backprop on a scalar (loss)
         if self.grad is None and allow_fill: 
@@ -85,30 +83,9 @@ class Dot(Function):
     def forward(ctx, x, y):
         ctx.save_for_backward(x, y)
         return x.dot(y)
-    
+
     def backward(ctx, grad_output):
         x, y = ctx.saved_tensors 
         grad_input = grad_output.dot(y.T) 
         grad_weight = grad_output.T.dot(x).T 
         return grad_input, grad_weight
-
-# ------------------------------------------------------------------------------
-# TODO: write tests and make this seperate file
-if __name__ == '__main__':
-    ts = [
-        Tensor(np.random.uniform(-1., 1., size=(1,5))),
-        Tensor(np.random.uniform(-1., 1., size=(5, 1))),
-    ]
-    print(ts[0])
-    print(ts[1])
-    ts.append(ts[0].dot(ts[1]))
-    print(ts[2])
-    ts[2].backward()
-    print('--- backward ---')
-    print(ts[0].grad, ts[1].grad, ts[2].grad)
-    
-    print()
-    for t in ts:
-        if t._ctx is not None:
-            for p in t._ctx.parents:
-                print('p', p)

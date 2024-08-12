@@ -1,14 +1,7 @@
-### Tensor/Autograd Implementation (Deep Learning Framework)
+### klein-dl: Tensor/Autograd Implementation 
 
 ## GOAL: 
-- very minimal ml framework
+- very minimal deep learning framework
 - read papers and implement them into this framework (like adam, dropout, etc.)
-- implement apple accelerator (mps)
+- implement apple & cuds accelerator (mps, cuda)
 - visual graph of all tensors (see micrograd)
-
-## NAME IDEAS: 
-- klein-ml
-- klein-dl
-- kleindl
-- sprout-ml
-- steigung
