@@ -118,15 +118,3 @@ class LogSoftmax(Function):
     def backward(ctx: Ctx, dout: np.ndarray):
         out, = ctx.saved_tensors
         return dout-np.exp(out)*dout.sum(axis=1).reshape((-1, 1))
-
-@register_function('softmax')
-class Softmax(Function):
-    def forward(ctx: Ctx, x: np.ndarray):
-        exp_x = np.exp(x - np.max(x, axis=1, keepdims=True))
-        out = exp_x / np.sum(exp_x, axis=1, keepdims=True)
-        ctx.save_for_backward(out)
-        return out
-
-    def backward(ctx: Ctx, dout: np.ndarray):
-        out, = ctx.saved_tensors
-        return out * (dout - np.sum(dout * out, axis=1, keepdims=True))
