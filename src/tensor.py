@@ -3,13 +3,14 @@ import numpy as np
 from functools import partialmethod
 from typing import Union, List
 
+# TODO: better typing
 # TODO: implement lazy eval
 class Tensor:
     def __init__(self, data: Union[np.ndarray, List, float], dtype: np.dtype=np.float32):
         if type(data) == np.ndarray: self.data = data.astype(dtype)
         else: raise TypeError('array has to be of type np.ndarray.')
         self.grad = None
-        self._ctx = None
+        self._ctx: Context = None
 
     def backward(self, allow_fill=True):
         if self._ctx is None: return 
@@ -27,21 +28,20 @@ class Tensor:
             t.grad = g 
             t.backward(False) 
         
-class Ctx:
+class Context:
     def __init__(self, arg_func, *tensors: Tensor):
         self.arg = arg_func
         self.parents = tensors 
         self.saved_tensors = [] 
 
-    def save_for_backward(self, *x: np.ndarray):
-        self.saved_tensors.extend(x)
+    def save_for_backward(self, *x: np.ndarray): self.saved_tensors.extend(x)
 
 class Function:
-    def forward(ctx: Ctx, *args): raise NotImplementedError('forward not implemented for function.')
-    def backward(ctx: Ctx, grad_out: np.ndarray): raise NotImplementedError('backward not implemented for function.')
+    def forward(ctx: Context, *args): raise NotImplementedError('forward not implemented for function.')
+    def backward(ctx: Context, grad_out: np.ndarray): raise NotImplementedError('backward not implemented for function.')
 
     def apply(self, arg, *x):
-        ctx = Ctx(arg, self, *x)
+        ctx = Context(arg, self, *x)
         ret = Tensor(arg.forward(ctx, self.data, *[t.data for t in x]))
         ret._ctx = ctx 
         return ret
@@ -54,30 +54,30 @@ def register_function(name: str):
 
 @register_function('add')
 class Add(Function):
-    def forward(ctx: Ctx, x: np.ndarray, y: np.ndarray):
+    def forward(ctx: Context, x: np.ndarray, y: np.ndarray):
         ctx.save_for_backward(x, y)
         return x+y
     
-    def backward(ctx: Ctx, dout: np.ndarray):
+    def backward(ctx: Context, dout: np.ndarray):
         return dout, dout
 
 @register_function('mul')
 class Mul(Function):
-    def forward(ctx: Ctx, x: np.ndarray, y: np.ndarray):
+    def forward(ctx: Context, x: np.ndarray, y: np.ndarray):
         ctx.save_for_backward(x, y)
         return x*y
 
-    def backward(ctx: Ctx, dout: np.ndarray):
+    def backward(ctx: Context, dout: np.ndarray):
         x, y = ctx.saved_tensors
         return y*dout, x*dout
 
 @register_function('dot')
 class Dot(Function):
-    def forward(ctx: Ctx, x: np.ndarray, y: np.ndarray):
+    def forward(ctx: Context, x: np.ndarray, y: np.ndarray):
         ctx.save_for_backward(x, y)
         return x.dot(y)
 
-    def backward(ctx: Ctx, dout: np.ndarray):
+    def backward(ctx: Context, dout: np.ndarray):
         x, y = ctx.saved_tensors 
         dx= dout.dot(y.T) 
         dy= dout.T.dot(x).T 
@@ -85,11 +85,11 @@ class Dot(Function):
     
 @register_function('relu')
 class ReLU(Function):
-    def forward(ctx: Ctx, x: np.ndarray):
+    def forward(ctx: Context, x: np.ndarray):
         ctx.save_for_backward(x)
         return np.maximum(x, 0)
 
-    def backward(ctx: Ctx, dout: np.ndarray):
+    def backward(ctx: Context, dout: np.ndarray):
         x, = ctx.saved_tensors
         dx = dout.copy()
         dx[x<0] = 0
@@ -97,17 +97,17 @@ class ReLU(Function):
     
 @register_function('sum')
 class Sum(Function):
-    def forward(ctx: Ctx, x: np.ndarray):
+    def forward(ctx: Context, x: np.ndarray):
         ctx.save_for_backward(x)
         return np.array([x.sum()])
     
-    def backward(ctx: Ctx, dout: np.ndarray):
+    def backward(ctx: Context, dout: np.ndarray):
         x, = ctx.saved_tensors
         return dout*np.ones_like(x)
 
 @register_function('logsoftmax')
 class LogSoftmax(Function):
-    def forward(ctx: Ctx, x: np.ndarray):
+    def forward(ctx: Context, x: np.ndarray):
         def logsumexp(x):
             c = x.max(axis=1)
             return c+np.log(np.exp(x-c.reshape((-1, 1))).sum(axis=1))
@@ -115,6 +115,6 @@ class LogSoftmax(Function):
         ctx.save_for_backward(out)
         return out
 
-    def backward(ctx: Ctx, dout: np.ndarray):
+    def backward(ctx: Context, dout: np.ndarray):
         out, = ctx.saved_tensors
         return dout-np.exp(out)*dout.sum(axis=1).reshape((-1, 1))
