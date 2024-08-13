@@ -27,10 +27,6 @@ class Tensor:
             t.grad = g 
             t.backward(False) 
         
-    def mean(self):
-        div = Tensor(np.array([1/self.data.size]))
-        return self.sum().mul(div)
-
 class Ctx:
     def __init__(self, arg_func, *tensors: Tensor):
         self.arg = arg_func
@@ -134,29 +130,3 @@ class Softmax(Function):
     def backward(ctx: Ctx, dout: np.ndarray):
         out, = ctx.saved_tensors
         return out * (dout - np.sum(dout * out, axis=1, keepdims=True))
-
-#@register_function('cross_entropy_loss')
-#class CrossEntropyLoss(Function):
-#    def forward(ctx: Ctx, probs: np.ndarray, y: np.ndarray):
-#        batch_size = probs.shape[0]
-#
-#        correct_log_probs = probs[np.arange(batch_size), y.reshape(-1)]
-#        
-#        loss = -np.mean(correct_log_probs+1e-15)
-#        
-#        ctx.save_for_backward(probs, y)
-#        
-#        return np.array(loss)
-#
-#    def backward(ctx: Ctx, dout: np.ndarray):
-#        probs, y = ctx.saved_tensors
-#        batch_size = probs.shape[0]
-#        
-#        # Compute gradients
-#        grad_logits = np.exp(probs)  # This gives us the softmax probabilities
-#        grad_logits[np.arange(batch_size), y.reshape(-1)] -= 1
-#        grad_logits /= batch_size
-#        
-#        # We multiply by grad_output for proper backpropagation, 
-#        # though it's typically 1.0 for loss functions
-#        return grad_logits * dout, None
