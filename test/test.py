@@ -1,39 +1,18 @@
 import numpy as np
 import sys
 sys.path.append('../')
-from src.tensor import Tensor
-from src.ops import *
+import src
+#from src.tensor import Tensor
+#from src.ops import *
 
 def main():
-    #ts = [
-    #    Tensor(np.random.uniform(-1., 1., size=(1,5))),
-    #    Tensor(np.random.uniform(-1., 1., size=(5, 1))),
-    #    Tensor(np.random.uniform(-1., 1., size=(1, 1)))
-    #]
-    #ts.append(ts[0].dot(ts[1])) # ts[3]
-    #ts.append(ts[2].mul(ts[3])) # ts[4]
-    #print('--- backward ---')
-
-    #for p in ts[4]._ctx.parents:
-    #    print(p)
-    #    #print(p.data)
-
-    #ts[4].backward()
-    #for t in ts:
-    #    if t._ctx is not None:
-    #        for p in t._ctx.parents:
-    #            print('p.data', p.data, 'p.grad', p.grad)
-    
-    #print('---------')
-    #for t in ts:
-    #    if t._ctx is not None: print(len(t._ctx.saved_tensors))
-
     n1 = np.random.uniform(-1., 1., size=(1,5))
     n2 = np.random.uniform(-1., 1., size=(5, 1))
 
-    t1 = Tensor(n1, requires_grad=True)
-    t2 = Tensor(n2, requires_grad=True)
-    t3 = Dot()(t1, t2)
+    t1 = src.Tensor(n1, requires_grad=True)
+    t2 = src.Tensor(n2, requires_grad=True)
+    t3 = t1.dot(t2)
+    t3.relu(None)
     t3.backward()
 
     import torch 

@@ -1,6 +1,5 @@
 # inspired by: https://github.com/tinygrad/tinygrad/blob/c900b6e/tinygrad/tensor.py
 import numpy as np
-#from functools import partialmethod
 from typing import Union, List, Callable
 
 GDTYPE = np.float32
@@ -14,6 +13,11 @@ class Tensor:
         self.requires_grad = requires_grad
         self.parents = []
         self.operation = None
+    
+    @classmethod
+    def _operation_method(cls, operation):
+        def method(self, other): return operation()(self, other)
+        return method
     
     def backward(self):
         if not self.requires_grad: return
@@ -31,7 +35,6 @@ class Tensor:
         traverse(self)
 
 class Operation:
-    # maybe do this with partialmethod (read into it first tho)
     def __call__(self, *in_tensors: Tensor):
         self.in_tensors = [t for t in in_tensors]
         self.out = self.forward()

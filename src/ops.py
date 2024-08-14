@@ -1,26 +1,52 @@
 import numpy as np
-#from src.tensor import Operation, Context, reg_func
+from functools import partialmethod
 from src.tensor import Operation, Tensor
 
+# TODO: find alternative to subscripting Operation.in_tensors
+
+# assert len(self.in_tensors) == 2
 class Dot(Operation):
+    def forward(self): return Tensor(np.dot(self.in_tensors[0].data, self.in_tensors[1].data))
+    def backward(self, grad): return [grad*self.in_tensors[1].data, grad*self.in_tensors[0].data]
+Tensor.dot = partialmethod(Tensor._operation_method(Dot))
+
+class ReLU(Operation):
+    def forward(self): return Tensor(np.maximum(self.in_tensors[0].data, 0))
+    def backward(self, grad): 
+        # compress this to 1 line
+        gradc = grad.copy()
+        gradc[self.in_tensors[0]<0] = 0
+        return gradc
+Tensor.relu = partialmethod(Tensor._operation_method(ReLU))
+
+class LogSoftmax(Operation):
     def forward(self):
-        return Tensor(np.dot(self.in_tensors[0].data, self.in_tensors[1].data))
+        assert len(self.in_tensors) == 1
+        x = self.in_tensors[0]
+        # minimize this
+        def logsumexp(x):
+            c = x.max(axis=1)
+            return c+np.log(np.exp(x-c.reshape((-1, 1))).sum(axis=1))
+        return logsumexp(x).reshape((-1, 1))
     
     def backward(self, grad):
-        return [grad*self.in_tensors[1].data, grad*self.in_tensors[0].data]
+        out = self.in_tensors[0]
+        return grad-np.exp(out)*grad.sum(axis=1).reshape((-1, 1))
 
-#@reg_func('dot')
-#class Dot(Operation):
-#    def forward(ctx: Context, x: np.ndarray, y: np.ndarray):
-#        ctx.save(x, y)
-#        return x.dot(y)
+#@reg_func('logsoftmax')
+#class LogSoftmax(Operation):
+#    def forward(ctx: Context, x: np.ndarray):
+#        def logsumexp(x):
+#            c = x.max(axis=1)
+#            return c+np.log(np.exp(x-c.reshape((-1, 1))).sum(axis=1))
+#        out = x-logsumexp(x).reshape((-1, 1))
+#        ctx.save(out)
+#        return out
 #
 #    def backward(ctx: Context, dout: np.ndarray):
-#        x, y = ctx.parents 
-#        dx= dout.dot(y.T) 
-#        dy= dout.T.dot(x).T 
-#        return dx, dy
-# 
+#        out, = ctx.parents
+#        return dout-np.exp(out)*dout.sum(axis=1).reshape((-1, 1))
+
 #@reg_func('add')
 #class Add(Operation):
 #    def forward(ctx: Context, x: np.ndarray, y: np.ndarray):
@@ -41,18 +67,7 @@ class Dot(Operation):
 #        x, y = ctx.parents
 #        return y*dout, x*dout
 #
-#@reg_func('relu')
-#class ReLU(Operation):
-#    def forward(ctx: Context, x: np.ndarray):
-#        ctx.save(x)
-#        return np.maximum(x, 0)
-#
-#    def backward(ctx: Context, dout: np.ndarray):
-#        x, = ctx.parents
-#        dx = dout.copy()
-#        dx[x<0] = 0
-#        return dx
-#    
+    
 #@reg_func('sum')
 #class Sum(Operation):
 #    def forward(ctx: Context, x: np.ndarray):
@@ -63,16 +78,3 @@ class Dot(Operation):
 #        x, = ctx.parents
 #        return dout*np.ones_like(x)
 #
-#@reg_func('logsoftmax')
-#class LogSoftmax(Operation):
-#    def forward(ctx: Context, x: np.ndarray):
-#        def logsumexp(x):
-#            c = x.max(axis=1)
-#            return c+np.log(np.exp(x-c.reshape((-1, 1))).sum(axis=1))
-#        out = x-logsumexp(x).reshape((-1, 1))
-#        ctx.save(out)
-#        return out
-#
-#    def backward(ctx: Context, dout: np.ndarray):
-#        out, = ctx.parents
-#        return dout-np.exp(out)*dout.sum(axis=1).reshape((-1, 1))

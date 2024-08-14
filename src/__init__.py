@@ -1,2 +1,2 @@
-#from src.tensor import Tensor
-#from src.ops import *
+from src.tensor import Tensor
+from src.ops import *
