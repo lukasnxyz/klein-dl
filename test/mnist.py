@@ -4,6 +4,7 @@ from tqdm import trange
 import sys
 sys.path.append('../')
 from src.tensor import Tensor
+from src.ops import *
 
 np.random.seed(42)
 
