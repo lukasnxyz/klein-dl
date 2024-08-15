@@ -1,10 +1,15 @@
 import numpy as np
 from tqdm import trange
 
-import sys
+import sys, os
 sys.path.append('../')
-from src.tensor import Tensor
-from src.ops import *
+#import kleindl
+from kleindl.tensor import Tensor
+from kleindl.ops import *
+
+if os.environ.get('TESTENV') == '1': 
+  print('ENV WORKS')
+  exit(0)
 
 np.random.seed(42)
 

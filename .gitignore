@@ -1,9 +1,5 @@
-# Ignore all, unignore extensions, unignore dirs
-*
-!*.*
-!*/
-
 .vscode/
 __pycache__/
 venv/
 data/
+.DS_Store
