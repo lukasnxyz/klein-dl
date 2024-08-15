@@ -3,7 +3,6 @@ from tqdm import trange
 
 import sys, os
 sys.path.append('../')
-#import kleindl
 from kleindl.tensor import Tensor
 from kleindl.ops import *
 
