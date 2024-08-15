@@ -6,32 +6,38 @@ from src.tensor import Operation, Tensor
 
 # assert len(self.in_tensors) == 2
 class Dot(Operation):
-    def forward(self): return Tensor(np.dot(self.in_tensors[0].data, self.in_tensors[1].data))
-    def backward(self, grad): return [grad*self.in_tensors[1].data, grad*self.in_tensors[0].data]
+  def forward(self): 
+    return self.in_tensors[0].dot(self.in_tensors[1])
+
+  def backward(self, grad:np.ndarray): 
+    return [grad*self.in_tensors[1].data, grad*self.in_tensors[0].data]
 Tensor.dot = partialmethod(Tensor._operation_method(Dot))
 
+class Mul(Operation):
+  def forward(self): return Tensor()
+
 class ReLU(Operation):
-    def forward(self): return Tensor(np.maximum(self.in_tensors[0].data, 0))
-    def backward(self, grad): 
-        # compress this to 1 line
-        gradc = grad.copy()
-        gradc[self.in_tensors[0]<0] = 0
-        return gradc
-Tensor.relu = partialmethod(Tensor._operation_method(ReLU))
+  def forward(self): return Tensor(np.maximum(self.in_tensors[0].data, 0))
+  def backward(self, grad:np.ndarray): 
+    # compress this to 1 line
+    gradc = grad.copy()
+    gradc[self.in_tensors[0]<0] = 0
+    return gradc
+#Tensor.relu = partialmethod(Tensor._operation_method(ReLU))
 
 class LogSoftmax(Operation):
-    def forward(self):
-        assert len(self.in_tensors) == 1
-        x = self.in_tensors[0]
-        # minimize this
-        def logsumexp(x):
-            c = x.max(axis=1)
-            return c+np.log(np.exp(x-c.reshape((-1, 1))).sum(axis=1))
-        return logsumexp(x).reshape((-1, 1))
+  def forward(self):
+    assert len(self.in_tensors) == 1
+    x = self.in_tensors[0].data
+    # minimize this
+    def logsumexp(x):
+      c = x.max(axis=1)
+      return c+np.log(np.exp(x-c.reshape((-1, 1))).sum(axis=1))
+    return Tensor(logsumexp(x).reshape((-1, 1)))
     
-    def backward(self, grad):
-        out = self.in_tensors[0]
-        return grad-np.exp(out)*grad.sum(axis=1).reshape((-1, 1))
+  def backward(self, grad:np.ndarray):
+    out = self.in_tensors[0]
+    return grad-np.exp(out)*grad.sum(axis=1).reshape((-1, 1))
 
 #@reg_func('logsoftmax')
 #class LogSoftmax(Operation):
