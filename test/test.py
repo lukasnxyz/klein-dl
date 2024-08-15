@@ -1,16 +1,14 @@
 import numpy as np
 import sys
 sys.path.append('../')
-import src
-#from src.tensor import Tensor
-#from src.ops import *
+import kleindl
 
 def main():
     n1 = np.random.uniform(-1., 1., size=(1,5))
     n2 = np.random.uniform(-1., 1., size=(5, 1))
 
-    t1 = src.Tensor(n1, requires_grad=True)
-    t2 = src.Tensor(n2, requires_grad=True)
+    t1 = kleindl.Tensor(n1, requires_grad=True)
+    t2 = kleindl.Tensor(n2, requires_grad=True)
     t3 = t1.dot(t2)
     t3.relu(None)
     t3.backward()

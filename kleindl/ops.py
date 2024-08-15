@@ -1,6 +1,6 @@
 import numpy as np
 from functools import partialmethod
-from src.tensor import Operation, Tensor
+from kleindl.tensor import Operation, Tensor
 
 # TODO: find alternative to subscripting Operation.in_tensors
 

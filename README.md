@@ -1,7 +1,7 @@
-### klein-dl: Tensor/Autograd Implementation 
+### kleindl 
+A small deep learning framework
 
-#### things to build out
-- change name
+#### Todo
 - benchmarking script (FLOPS)
 - read papers/implement them (adam, dropout, batchnorm)
 - ane & cuda accelerators
