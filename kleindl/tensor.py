@@ -11,9 +11,7 @@ class Tensor:
 
     #TODO: if !requires_grad: don't have self.grad, self._ctx
     self.requires_grad = requires_grad
-    self.grad: np.ndarray = None
-    self.parents = []
-    self.operation = None
+    self.parents, self.operation, self.grad = [], None, None
     
   @classmethod
   def _operation_method(cls, operation):
@@ -39,10 +37,11 @@ class Tensor:
 # basically need to check if the operation is a binary or unary op
 # if it's a unary operation, avoid checking NoneType
 
+#Tensor.relu = partialmethod(Tensor._operation_method(ReLU))
+#assert len(self.saved) == 1 (for unary ops)
 class Operation:
   def __call__(self, *in_tensors:Optional[Tensor]):
-    #print('-->', len(in_tensors))
-    self.in_tensors = [t for t in in_tensors]
+    self.saved = [t for t in in_tensors.data]
     self.out = self.forward()
 
     # -- handle this 
@@ -55,5 +54,5 @@ class Operation:
       self.out.operation = self
       self.out.parents = self.in_tensors
     return self.out
-  def forward(self): raise NotImplementedError
-  def backward(self, grad): raise NotImplementedError
+  def forward(self) -> Tensor: raise NotImplementedError
+  def backward(self, grad) -> Tensor: raise NotImplementedError

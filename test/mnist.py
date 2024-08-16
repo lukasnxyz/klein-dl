@@ -34,7 +34,7 @@ class MNIST:
     self.l2 = Tensor(layer_init(128, 10))
     
   def forward(self, x):
-    return LogSoftmax()(ReLU()(x.dot(self.l1)).dot(self.l2))
+    return LogSoftmax()(ReLU()(Dot()(Dot()(x, self.l1), self.l2)))
     
 model = MNIST()
 
@@ -55,7 +55,7 @@ for i in (t := trange(epochs)):
   outs = model.forward(x)
 
   # NLL loss function
-  loss = outs.mul(y).mean()
+  loss = Mul()(outs, y)#.mean()
   loss.backward()
   
   cat = np.argmax(outs.data, axis=1)

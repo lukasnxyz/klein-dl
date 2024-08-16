@@ -2,6 +2,14 @@
 
 SMALL DESCRIPTION
 
+#### goals
+- run open source models
+- proper acceleration support (ane, cuda)
+- einops style tensor permutations
+- benchmarking suite
+- visualization suite
+- focus on minimal line count
+
 ##### Outline (tmp)
 What I want this project to look like and where I want it to go.
 1. A working tensor and autograd library. This has already been done, but is being 
@@ -12,10 +20,3 @@ What I want this project to look like and where I want it to go.
 3. Get open source models such as llama working with this framework. Having the ability to locally run llm's
   is the future and we need more ways to do so. It needs to be accessible to everyone.
 4. Compete with companies like tinycorp.
-
-##### notes
-- benchmarking script (FLOPS)
-- graph visualization feature
-- run llama and other open source models
-- line count script (keep minimal)
-- einops style tensor permutations
