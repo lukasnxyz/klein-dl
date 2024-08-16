@@ -2,8 +2,6 @@ import numpy as np
 from functools import partialmethod
 from kleindl.tensor import Operation, Tensor
 
-# TODO: find alternative to subscripting Operation.in_tensors
-
 class Dot(Operation):
   def forward(self) -> Tensor:
     return self.saved[0].dot(self.saved[1])

@@ -44,15 +44,15 @@ class Operation:
     self.saved = [t for t in in_tensors.data]
     self.out = self.forward()
 
-    # -- handle this 
-    if None in self.in_tensors:
-      self.in_tensors.remove(None)
-    # --
-
     if any(t.requires_grad for t in self.in_tensors):
       self.out.requires_grad = True
       self.out.operation = self
       self.out.parents = self.in_tensors
+
     return self.out
-  def forward(self) -> Tensor: raise NotImplementedError
-  def backward(self, grad) -> Tensor: raise NotImplementedError
+
+  def forward(self) -> Tensor: 
+    raise NotImplementedError
+
+  def backward(self, grad:np.ndarray) -> Tensor: 
+    raise NotImplementedError
