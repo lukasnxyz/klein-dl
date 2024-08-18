@@ -55,7 +55,9 @@ for i in (t := trange(epochs)):
   outs = model.forward(x)
 
   # NLL loss function
-  loss = Mul()(outs, y)#.mean()
+  loss = Mul()(outs, y).mean()
+  print(loss)
+  break
   loss.backward()
   
   cat = np.argmax(outs.data, axis=1)

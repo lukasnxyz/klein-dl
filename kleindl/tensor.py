@@ -6,15 +6,20 @@ GDTYPE = np.float32
 
 class Tensor:
   def __init__(self, data:Union[np.ndarray, List, float], requires_grad:Optional[bool]=False):
-    if isinstance(data, np.ndarray): self.data = data.astype(GDTYPE)
-    else: raise TypeError('array has to be of type np.ndarray.')
+    if isinstance(data, np.ndarray): 
+      self.data = data.astype(GDTYPE)
+    else: 
+      raise TypeError('array has to be of type np.ndarray.')
 
     #TODO: if !requires_grad: don't have self.grad, self._ctx
     self.requires_grad = requires_grad
-    self.parents, self.operation, self.grad = [], None, None
+    self.parents = [] # TODO: this isn't used
+    self.operation = None # TODO: rename to op
+    self.grad = None
     
   @classmethod
   def _operation_method(cls, operation):
+    print(cls, operation)
     def method(self, other): return operation()(self, other)
     return method
     
@@ -32,6 +37,10 @@ class Tensor:
           else: parent.grad += grad
           traverse(parent)
     traverse(self)
+  
+  def mean(self):
+    div = Tensor(np.array([1/self.data.size]))
+    return self.sum().mul(div)
 
 # TODO:
 # basically need to check if the operation is a binary or unary op
@@ -40,14 +49,14 @@ class Tensor:
 #Tensor.relu = partialmethod(Tensor._operation_method(ReLU))
 #assert len(self.saved) == 1 (for unary ops)
 class Operation:
-  def __call__(self, *in_tensors:Optional[Tensor]):
-    self.saved = [t for t in in_tensors.data]
+  def __call__(self, *in_tensors:Tensor):
+    self.saved = [t.data for t in in_tensors]
     self.out = self.forward()
 
-    if any(t.requires_grad for t in self.in_tensors):
+    if any(t.requires_grad for t in in_tensors):
       self.out.requires_grad = True
       self.out.operation = self
-      self.out.parents = self.in_tensors
+      self.out.parents = self.saved
 
     return self.out
 
